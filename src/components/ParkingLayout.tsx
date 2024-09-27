@@ -7,6 +7,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ParkingLayout: React.FC = () => {
   return (
@@ -18,13 +19,30 @@ const ParkingLayout: React.FC = () => {
         <DialogHeader>
           <DialogTitle>車位配置圖</DialogTitle>
         </DialogHeader>
-        <div className="overflow-auto">
-          <img
-            src="/parking-layout.jpg"
-            alt="車位配置圖"
-            className="w-full h-auto"
-          />
-        </div>
+        <Tabs defaultValue="layout1" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="layout1">配置圖 1</TabsTrigger>
+            <TabsTrigger value="layout2">配置圖 2</TabsTrigger>
+          </TabsList>
+          <TabsContent value="layout1">
+            <div className="overflow-auto">
+              <img
+                src="/parking-layout.jpg"
+                alt="車位配置圖 1"
+                className="w-full h-auto"
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="layout2">
+            <div className="overflow-auto">
+              <img
+                src="/parking-layout2.jpg"
+                alt="車位配置圖 2"
+                className="w-full h-auto"
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
