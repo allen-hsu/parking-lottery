@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 import LotteryForm from "../components/LotteryForm";
 import LotteryResults from "../components/LotteryResults";
 import ParkingSpaceList from "../components/ParkingSpaceList";
-import ParkingLayout from "../components/ParkingLayout";
 import ResidentList from "../components/ResidentList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -15,6 +15,7 @@ import {
 } from "@/types/ParkingSpace";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Download } from "lucide-react";
 
 interface LotteryResult {
   round: number;
@@ -40,12 +41,11 @@ const Home: React.FC = () => {
     const { participants, rules } = formData;
     const winners: Array<{ resident: Resident; space: ParkingSpace }> = [];
 
-    const eligibleSpaces = availableSpaces.filter((space) => {
+    let eligibleSpaces = availableSpaces.filter((space) => {
       if (rules.noRestriction) return true;
       if (rules.onlyStore) return space.allocation === "店";
       if (rules.onlyDisabled) return space.size === "身障";
       if (rules.onlyMotorcycle) return space.allocation === "重";
-      if (rules.largePriority) return space.size === "大";
       if (rules.excludeStore && space.allocation === "店") return false;
       if (rules.excludeDisabled && space.size === "身障") return false;
       if (rules.excludeMotorcycle && space.allocation === "重") return false;
@@ -66,19 +66,67 @@ const Home: React.FC = () => {
       return;
     }
 
-    const shuffledSpaces = [...eligibleSpaces].sort(() => Math.random() - 0.5);
     const shuffledResidents = [...availableResidents].sort(
       () => Math.random() - 0.5
     );
 
+    const unassignedResidents: Resident[] = [];
+
     for (let i = 0; i < participants; i++) {
-      const space = shuffledSpaces[i];
       const resident = shuffledResidents[i];
-      winners.push({
-        resident,
-        space,
-      });
+      let eligibleSpacesForResident = eligibleSpaces;
+
+      if (rules.areaRestriction) {
+        // 實現分區抽選邏輯
+        if (resident.area === "S") {
+          eligibleSpacesForResident = eligibleSpaces.filter(
+            (space) => space.allocation === "店"
+          );
+        } else {
+          eligibleSpacesForResident = eligibleSpaces.filter(
+            (space) => space.allocation === resident.area
+          );
+        }
+      }
+
+      if (rules.largePriority) {
+        // 實現大車位優先邏輯
+        const largeSpaces = eligibleSpacesForResident.filter(
+          (space) => space.size === "大"
+        );
+        if (largeSpaces.length > 0) {
+          eligibleSpacesForResident = largeSpaces;
+        }
+      }
+
+      if (eligibleSpacesForResident.length === 0) {
+        unassignedResidents.push(resident);
+        continue;
+      }
+
+      const randomIndex = Math.floor(
+        Math.random() * eligibleSpacesForResident.length
+      );
+      const space = eligibleSpacesForResident[randomIndex];
+
+      winners.push({ resident, space });
       space.isAvailable = false;
+      eligibleSpaces = eligibleSpaces.filter((s) => s.number !== space.number);
+    }
+
+    // 隨機分配剩餘車位給未分配的住戶
+    for (const resident of unassignedResidents) {
+      if (eligibleSpaces.length === 0) {
+        setError(`無法為所有住戶分配車位，請調整抽籤規則或減少參與人數。`);
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * eligibleSpaces.length);
+      const space = eligibleSpaces[randomIndex];
+
+      winners.push({ resident, space });
+      space.isAvailable = false;
+      eligibleSpaces = eligibleSpaces.filter((s) => s.number !== space.number);
     }
 
     const newResult: LotteryResult = {
@@ -104,6 +152,13 @@ const Home: React.FC = () => {
     setAvailableResidents(residents);
     setError(null);
   };
+
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => resultsRef.current,
+    documentTitle: "抽籤結果",
+  });
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
@@ -135,7 +190,6 @@ const Home: React.FC = () => {
                       重置抽籤
                     </Button>
                     <ParkingSpaceList spaces={initialParkingSpaces} />
-                    <ParkingLayout />
                     <ResidentList residents={residents} />
                   </div>
                 </CardContent>
@@ -143,11 +197,22 @@ const Home: React.FC = () => {
             </div>
             <div className="w-full lg:w-2/3">
               <Card className="shadow-lg h-full">
-                <CardHeader className="bg-blue-500 text-white">
+                <CardHeader className="bg-blue-500 text-white flex justify-between items-center">
                   <CardTitle className="text-2xl font-bold">抽籤結果</CardTitle>
+                  <Button
+                    onClick={handlePrint}
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-blue-600"
+                    disabled={lotteryResults.length === 0}
+                  >
+                    <Download className="h-6 w-6" />
+                  </Button>
                 </CardHeader>
                 <CardContent className="p-6 overflow-y-auto h-[calc(100%-80px)]">
-                  <LotteryResults results={lotteryResults} />
+                  <div ref={resultsRef}>
+                    <LotteryResults results={lotteryResults} />
+                  </div>
                 </CardContent>
               </Card>
             </div>

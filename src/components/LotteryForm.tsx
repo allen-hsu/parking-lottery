@@ -32,6 +32,7 @@ const formSchema = z.object({
     excludeStore: z.boolean(),
     excludeDisabled: z.boolean(),
     excludeMotorcycle: z.boolean(),
+    areaRestriction: z.boolean(),
   }),
 });
 
@@ -59,9 +60,20 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
         excludeStore: false,
         excludeDisabled: false,
         excludeMotorcycle: false,
+        areaRestriction: false,
       },
     },
   });
+
+  // 計算各區域的住戶數量
+  const residentCounts = availableResidents.reduce(
+    (acc, resident) => {
+      acc[resident.area]++;
+      acc.total++;
+      return acc;
+    },
+    { S: 0, A: 0, B: 0, C: 0, total: 0 }
+  );
 
   const handleRulesChange = (
     field: any,
@@ -70,15 +82,10 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
   ) => {
     let newRules = { ...field.value, [ruleName]: value };
 
-    if (
-      ruleName === "noRestriction" ||
-      ruleName === "onlyStore" ||
-      ruleName === "onlyDisabled" ||
-      ruleName === "onlyMotorcycle"
-    ) {
-      // 如果選擇了這些規則之一,取消其他所有選項
+    if (ruleName === "noRestriction" && value) {
+      // 如果選擇了"無限制規則",取消其他所有選項
       newRules = {
-        noRestriction: false,
+        noRestriction: true,
         onlyStore: false,
         onlyDisabled: false,
         onlyMotorcycle: false,
@@ -86,10 +93,10 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
         excludeStore: false,
         excludeDisabled: false,
         excludeMotorcycle: false,
-        [ruleName]: value,
+        areaRestriction: false,
       };
-    } else {
-      // 如果選擇了其他規則,取消"無限制規則"
+    } else if (ruleName !== "largePriority" && ruleName !== "areaRestriction") {
+      // 如果選擇了其他規則(除了大車位優先和分區抽選),取消"無限制規則"
       newRules.noRestriction = false;
     }
 
@@ -102,7 +109,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
       if (rules.onlyStore) return space.allocation === "店";
       if (rules.onlyDisabled) return space.size === "身障";
       if (rules.onlyMotorcycle) return space.allocation === "重";
-      if (rules.largePriority) return space.size === "大";
       if (rules.excludeStore && space.allocation === "店") return false;
       if (rules.excludeDisabled && space.size === "身障") return false;
       if (rules.excludeMotorcycle && space.allocation === "重") return false;
@@ -128,8 +134,14 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
                 />
               </FormControl>
               <FormDescription>
-                請輸入本輪參與抽籤的人數 (可用住戶數量:{" "}
-                {availableResidents.length})
+                請輸入本輪參與抽籤的人數
+                <div className="mt-2">
+                  <p>總可用住戶數量: {residentCounts.total}</p>
+                  <p>S區住戶數量: {residentCounts.S}</p>
+                  <p>A區住戶數量: {residentCounts.A}</p>
+                  <p>B區住戶數量: {residentCounts.B}</p>
+                  <p>C區住戶數量: {residentCounts.C}</p>
+                </div>
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -168,6 +180,7 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
                         {key === "excludeStore" && "過濾店面"}
                         {key === "excludeDisabled" && "過濾身障"}
                         {key === "excludeMotorcycle" && "過濾大型重機"}
+                        {key === "areaRestriction" && "分區抽選"}
                       </label>
                     </div>
                   ))}
