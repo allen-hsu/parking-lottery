@@ -1,51 +1,53 @@
-# React + TypeScript + Vite
+# 停車位抽籤系統 (Parking Lottery)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+這是一個使用 React + TypeScript + Vite 構建的停車位抽籤系統。
 
-Currently, two official plugins are available:
+## 專案概述
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+本專案旨在為停車位分配提供一個公平、高效的抽籤系統。它可以幫助管理大型停車場或有限停車資源的組織進行停車位的分配。
 
-## Expanding the ESLint configuration
+## 技術棧
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- React 18.3
+- TypeScript
+- Vite
+- ESLint
 
-- Configure the top-level `parserOptions` property like this:
+## 快速開始
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+1. 克隆儲存庫
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+   ```
+   git clone https://github.com/your-username/parking-lottery.git
+   ```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+2. 安裝依賴
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
-# parking-lottery
+   ```
+   cd parking-lottery
+   npm install
+   ```
+
+3. 運行開發伺服器
+   ```
+   npm run dev
+   ```
+
+## 特性
+
+- 隨機抽取停車位
+- 使用者友善的介面
+- 即時結果顯示
+- 可配置的抽籤規則
+
+## ESLint 配置
+
+本專案使用 ESLint 進行程式碼品質控制。如果您正在開發生產應用，我們建議更新配置以啟用類型感知的 lint 規則。詳細配置請參考專案根目錄下的 `eslint.config.js` 檔案。
+
+## 貢獻
+
+歡迎提交 Pull Requests 來改進這個專案。對於重大更改，請先開 issue 討論您想要改變的內容。
+
+## 授權條款
+
+[MIT](https://choosealicense.com/licenses/mit/)
