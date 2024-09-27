@@ -1,5 +1,5 @@
-import React from "react";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -12,17 +12,25 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ParkingSpace,
   LotteryFormData,
   LotteryRules,
   Resident,
 } from "@/types/ParkingSpace";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z.object({
-  participants: z.number().min(1, "至少需要1名參與者"),
+  selectedResidents: z.array(z.string()).min(1, "請至少選擇一位住戶"),
+  bulkInput: z.string(),
   rules: z.object({
     noRestriction: z.boolean(),
     onlyStore: z.boolean(),
@@ -40,17 +48,22 @@ interface LotteryFormProps {
   onSubmit: (data: LotteryFormData) => void;
   availableSpaces: ParkingSpace[];
   availableResidents: Resident[];
+  resetTrigger: number; // 新增這個 prop
 }
 
 const LotteryForm: React.FC<LotteryFormProps> = ({
   onSubmit,
   availableSpaces,
   availableResidents,
+  resetTrigger,
 }) => {
+  const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
+
   const form = useForm<LotteryFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      participants: 0,
+      selectedResidents: [],
+      bulkInput: "",
       rules: {
         noRestriction: true,
         onlyStore: false,
@@ -64,6 +77,26 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
       },
     },
   });
+
+  // 添加一個 useEffect 來處理重置
+  useEffect(() => {
+    setSelectedResidents([]);
+    form.reset({
+      selectedResidents: [],
+      bulkInput: "",
+      rules: {
+        noRestriction: true,
+        onlyStore: false,
+        onlyDisabled: false,
+        onlyMotorcycle: false,
+        largePriority: false,
+        excludeStore: false,
+        excludeDisabled: false,
+        excludeMotorcycle: false,
+        areaRestriction: false,
+      },
+    });
+  }, [resetTrigger, form]);
 
   // 計算各區域的住戶數量
   const residentCounts = availableResidents.reduce(
@@ -116,32 +149,93 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
     }).length;
   };
 
+  const handleResidentSelect = (residentId: string) => {
+    setSelectedResidents((prev) => {
+      if (prev.includes(residentId)) {
+        return prev.filter((id) => id !== residentId);
+      } else {
+        return [...prev, residentId];
+      }
+    });
+  };
+
+  const handleBulkInput = () => {
+    const bulkInput = form.getValues("bulkInput");
+    const inputIds = bulkInput.split(/[\s,]+/).filter(Boolean); // 分割輸入並過濾空字符串
+    const validIds = inputIds.filter((id) =>
+      availableResidents.some((resident) => resident.id === id)
+    );
+    setSelectedResidents(validIds);
+    form.setValue("selectedResidents", validIds);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="participants"
+          name="bulkInput"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>參與人數</FormLabel>
+              <FormLabel>批量輸入住戶ID</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <Textarea
+                  placeholder="請輸入住戶ID，用空格或逗號分隔"
                   {...field}
-                  onChange={(e) => field.onChange(+e.target.value)}
-                  className="bg-white"
                 />
               </FormControl>
               <FormDescription>
-                請輸入本輪參與抽籤的人數
-                <div className="mt-2">
-                  <p>總可用住戶數量: {residentCounts.total}</p>
-                  <p>S區住戶數量: {residentCounts.S}</p>
-                  <p>A區住戶數量: {residentCounts.A}</p>
-                  <p>B區住戶數量: {residentCounts.B}</p>
-                  <p>C區住戶數量: {residentCounts.C}</p>
-                </div>
+                輸入多個住戶ID，用空格或逗號分隔
+              </FormDescription>
+              <Button type="button" onClick={handleBulkInput}>
+                批量添加
+              </Button>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="selectedResidents"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>選擇參與抽籤的住戶</FormLabel>
+              <FormControl>
+                <Select onValueChange={(value) => handleResidentSelect(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="選擇住戶" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableResidents.map((resident) => (
+                      <SelectItem key={resident.id} value={resident.id}>
+                        {resident.unitNumber} ({resident.area}區)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <div className="mt-2 space-y-2">
+                {selectedResidents.map((residentId) => {
+                  const resident = availableResidents.find(
+                    (r) => r.id === residentId
+                  );
+                  return (
+                    <div
+                      key={residentId}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        checked
+                        onCheckedChange={() => handleResidentSelect(residentId)}
+                      />
+                      <span>
+                        {resident?.unitNumber} ({resident?.area}區)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <FormDescription>
+                已選擇 {selectedResidents.length} 位住戶
               </FormDescription>
               <FormMessage />
             </FormItem>

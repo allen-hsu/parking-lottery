@@ -33,13 +33,14 @@ const Home: React.FC = () => {
   const [availableResidents, setAvailableResidents] =
     useState<Resident[]>(residents);
   const [error, setError] = useState<string | null>(null);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   useEffect(() => {
     setError(null);
   }, [availableSpaces]);
 
   const handleLotterySubmit = (formData: LotteryFormData) => {
-    const { participants, rules } = formData;
+    const { selectedResidents, rules } = formData;
     const winners: Array<{ resident: Resident; space: ParkingSpace }> = [];
 
     let eligibleSpaces = availableSpaces.filter((space) => {
@@ -53,27 +54,24 @@ const Home: React.FC = () => {
       return true;
     });
 
-    if (participants > eligibleSpaces.length) {
+    if (selectedResidents.length > eligibleSpaces.length) {
       setError(
-        `參與人數(${participants})超過可用車位數量(${eligibleSpaces.length})，請減少參與人數或更改抽籤規則。`
+        `選擇的住戶數量(${selectedResidents.length})超過可用車位數量(${eligibleSpaces.length})，請減少選擇的住戶數量或更改抽籤規則。`
       );
       return;
     }
 
-    if (participants > availableResidents.length) {
-      setError(
-        `參與人數(${participants})超過可用住戶數量(${availableResidents.length})，請減少參與人數。`
-      );
-      return;
-    }
+    const participatingResidents = availableResidents.filter((resident) =>
+      selectedResidents.includes(resident.id)
+    );
 
-    const shuffledResidents = [...availableResidents].sort(
+    const shuffledResidents = [...participatingResidents].sort(
       () => Math.random() - 0.5
     );
 
     const unassignedResidents: Resident[] = [];
 
-    for (let i = 0; i < participants; i++) {
+    for (let i = 0; i < shuffledResidents.length; i++) {
       const resident = shuffledResidents[i];
       let eligibleSpacesForResident = eligibleSpaces;
 
@@ -139,10 +137,10 @@ const Home: React.FC = () => {
     setAvailableSpaces(availableSpaces.filter((space) => space.isAvailable));
     setAvailableResidents(
       availableResidents.filter(
-        (resident) =>
-          !winners.some((winner) => winner.resident.id === resident.id)
+        (resident) => !selectedResidents.includes(resident.id)
       )
     );
+    setResetTrigger((prev) => prev + 1); // 在抽籤完成後觸發重置
   };
 
   const handleReset = () => {
@@ -152,6 +150,7 @@ const Home: React.FC = () => {
     );
     setAvailableResidents(residents);
     setError(null);
+    setResetTrigger((prev) => prev + 1); // 在重置時也觸發重置
   };
 
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -184,6 +183,7 @@ const Home: React.FC = () => {
                   onSubmit={handleLotterySubmit}
                   availableSpaces={availableSpaces}
                   availableResidents={availableResidents}
+                  resetTrigger={resetTrigger} // 將 resetTrigger 傳遞給 LotteryForm
                 />
                 <Button onClick={handleReset} className="w-full">
                   重置抽籤

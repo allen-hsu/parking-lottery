@@ -18,7 +18,8 @@ export interface LotteryRules {
 }
 
 export interface LotteryFormData {
-  participants: number;
+  selectedResidents: string[];
+  bulkInput: string; // 新增
   rules: LotteryRules;
 }
 
