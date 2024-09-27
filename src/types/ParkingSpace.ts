@@ -14,6 +14,7 @@ export interface LotteryRules {
   excludeStore: boolean;
   excludeDisabled: boolean;
   excludeMotorcycle: boolean;
+  areaRestriction: boolean;
 }
 
 export interface LotteryFormData {
