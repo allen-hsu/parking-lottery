@@ -58,7 +58,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
   resetTrigger,
 }) => {
   const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
-
   const form = useForm<LotteryFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -146,12 +145,17 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
   };
 
   const handleResidentSelect = (residentId: string) => {
+    console.log("residentId", residentId);
+
     setSelectedResidents((prev) => {
-      if (prev.includes(residentId)) {
-        return prev.filter((id) => id !== residentId);
-      } else {
-        return [...prev, residentId];
-      }
+      const newSelectedResidents = prev.includes(residentId)
+        ? prev.filter((id) => id !== residentId)
+        : [...prev, residentId];
+
+      // 更新表单的 selectedResidents 字段
+      form.setValue("selectedResidents", newSelectedResidents);
+
+      return newSelectedResidents;
     });
   };
 
