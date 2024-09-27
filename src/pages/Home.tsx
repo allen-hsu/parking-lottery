@@ -3,6 +3,7 @@ import { useReactToPrint } from "react-to-print";
 import LotteryForm from "../components/LotteryForm";
 import LotteryResults from "../components/LotteryResults";
 import ParkingSpaceList from "../components/ParkingSpaceList";
+import ParkingLayout from "../components/ParkingLayout";
 import ResidentList from "../components/ResidentList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -163,7 +164,7 @@ const Home: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <div className="min-h-screen w-full bg-gradient-to-b from-blue-100 to-blue-200 py-10">
-        <div className="container mx-auto px-4 max-w-7xl h-full">
+        <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-4xl font-bold text-center mb-8 text-blue-800">
             車位抽籤系統
           </h1>
@@ -173,49 +174,46 @@ const Home: React.FC = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-200px)]">
-            <div className="w-full lg:w-1/3">
-              <Card className="shadow-lg h-full">
-                <CardHeader className="bg-blue-500 text-white">
-                  <CardTitle className="text-2xl font-bold">抽籤表單</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 overflow-y-auto h-[calc(100%-80px)]">
-                  <LotteryForm
-                    onSubmit={handleLotterySubmit}
-                    availableSpaces={availableSpaces}
-                    availableResidents={availableResidents}
-                  />
-                  <div className="flex flex-col gap-2 mt-4">
-                    <Button onClick={handleReset} className="w-full">
-                      重置抽籤
-                    </Button>
-                    <ParkingSpaceList spaces={initialParkingSpaces} />
-                    <ResidentList residents={residents} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="w-full lg:w-2/3">
-              <Card className="shadow-lg h-full">
-                <CardHeader className="bg-blue-500 text-white flex justify-between items-center">
-                  <CardTitle className="text-2xl font-bold">抽籤結果</CardTitle>
-                  <Button
-                    onClick={handlePrint}
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-blue-600"
-                    disabled={lotteryResults.length === 0}
-                  >
-                    <Download className="h-6 w-6" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-6 overflow-y-auto h-[calc(100%-80px)]">
-                  <div ref={resultsRef}>
-                    <LotteryResults results={lotteryResults} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-1 shadow-lg">
+              <CardHeader className="bg-blue-500 text-white">
+                <CardTitle className="text-2xl font-bold">抽籤表單</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <LotteryForm
+                  onSubmit={handleLotterySubmit}
+                  availableSpaces={availableSpaces}
+                  availableResidents={availableResidents}
+                />
+                <Button onClick={handleReset} className="w-full">
+                  重置抽籤
+                </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  <ParkingSpaceList spaces={initialParkingSpaces} />
+                  <ParkingLayout />
+                  <ResidentList residents={residents} />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="lg:col-span-2 shadow-lg">
+              <CardHeader className="bg-blue-500 text-white flex justify-between items-center">
+                <CardTitle className="text-2xl font-bold">抽籤結果</CardTitle>
+                <Button
+                  onClick={handlePrint}
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-blue-600"
+                  disabled={lotteryResults.length === 0}
+                >
+                  <Download className="h-6 w-6" />
+                </Button>
+              </CardHeader>
+              <CardContent className="p-6 h-[calc(100vh-250px)] overflow-y-auto">
+                <div ref={resultsRef}>
+                  <LotteryResults results={lotteryResults} />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
