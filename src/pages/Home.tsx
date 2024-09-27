@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import LotteryForm, { LotteryFormData } from "../components/LotteryForm";
+import LotteryForm from "../components/LotteryForm";
 import LotteryResults from "../components/LotteryResults";
 import ParkingSpaceList from "../components/ParkingSpaceList";
 import ParkingLayout from "../components/ParkingLayout";
@@ -11,6 +11,7 @@ import {
   initialParkingSpaces,
   residents,
   Resident,
+  LotteryFormData,
 } from "@/types/ParkingSpace";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

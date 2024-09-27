@@ -205,7 +205,7 @@ export const initialParkingSpaces: ParkingSpace[] = [
   { number: "122", size: "大", allocation: "A", isAvailable: true },
   { number: "123", size: "大", allocation: "A", isAvailable: true },
   { number: "124", size: "大", allocation: "A", isAvailable: true },
-  { number: "125", size: "", allocation: "A", isAvailable: true },
+  { number: "125", size: "大", allocation: "A", isAvailable: true },
   { number: "126", size: "小", allocation: "A", isAvailable: true },
   { number: "127", size: "小", allocation: "A", isAvailable: true },
   { number: "128", size: "小", allocation: "A", isAvailable: true },
