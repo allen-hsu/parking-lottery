@@ -198,15 +198,17 @@ const Home: React.FC = () => {
             <Card className="lg:col-span-2 shadow-lg">
               <CardHeader className="bg-blue-500 text-white flex justify-between items-center">
                 <CardTitle className="text-2xl font-bold">抽籤結果</CardTitle>
-                <Button
-                  onClick={handlePrint}
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-blue-600"
-                  disabled={lotteryResults.length === 0}
-                >
-                  <Download className="h-6 w-6" />
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handlePrint}
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-blue-600"
+                    disabled={lotteryResults.length === 0}
+                  >
+                    <Download className="h-6 w-6" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-6 h-[calc(100vh-250px)] overflow-y-auto">
                 <div ref={resultsRef}>

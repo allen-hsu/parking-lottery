@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ interface LotteryFormProps {
   onSubmit: (data: LotteryFormData) => void;
   availableSpaces: ParkingSpace[];
   availableResidents: Resident[];
-  resetTrigger: number; // 新增這個 prop
+  resetTrigger: number;
 }
 
 const LotteryForm: React.FC<LotteryFormProps> = ({
@@ -78,7 +78,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
     },
   });
 
-  // 添加一個 useEffect 來處理重置
   useEffect(() => {
     setSelectedResidents([]);
     form.reset({
@@ -98,7 +97,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
     });
   }, [resetTrigger, form]);
 
-  // 計算各區域的住戶數量
   const residentCounts = availableResidents.reduce(
     (acc, resident) => {
       acc[resident.area]++;
@@ -116,7 +114,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
     let newRules = { ...field.value, [ruleName]: value };
 
     if (ruleName === "noRestriction" && value) {
-      // 如果選擇了"無限制規則",取消其他所有選項
       newRules = {
         noRestriction: true,
         onlyStore: false,
@@ -129,7 +126,6 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
         areaRestriction: false,
       };
     } else if (ruleName !== "largePriority" && ruleName !== "areaRestriction") {
-      // 如果選擇了其他規則(除了大車位優先和分區抽選),取消"無限制規則"
       newRules.noRestriction = false;
     }
 
@@ -161,7 +157,7 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
 
   const handleBulkInput = () => {
     const bulkInput = form.getValues("bulkInput");
-    const inputIds = bulkInput.split(/[\s,]+/).filter(Boolean); // 分割輸入並過濾空字符串
+    const inputIds = bulkInput.split(/[\s,]+/).filter(Boolean);
     const validIds = inputIds.filter((id) =>
       availableResidents.some((resident) => resident.id === id)
     );
@@ -196,7 +192,7 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
         <FormField
           control={form.control}
           name="selectedResidents"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel>選擇參與抽籤的住戶</FormLabel>
               <FormControl>
@@ -236,6 +232,13 @@ const LotteryForm: React.FC<LotteryFormProps> = ({
               </div>
               <FormDescription>
                 已選擇 {selectedResidents.length} 位住戶
+                <div className="mt-2">
+                  <p>總可用住戶數量: {residentCounts.total}</p>
+                  <p>S區住戶數量: {residentCounts.S}</p>
+                  <p>A區住戶數量: {residentCounts.A}</p>
+                  <p>B區住戶數量: {residentCounts.B}</p>
+                  <p>C區住戶數量: {residentCounts.C}</p>
+                </div>
               </FormDescription>
               <FormMessage />
             </FormItem>
