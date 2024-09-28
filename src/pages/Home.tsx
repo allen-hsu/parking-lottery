@@ -165,7 +165,7 @@ const Home: React.FC = () => {
       <div className="min-h-screen w-full bg-gradient-to-b from-blue-100 to-blue-200 py-10">
         <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-4xl font-bold text-center mb-8 text-blue-800">
-            車位抽籤系統
+            車位抽籤系統 (測試版本)，尚未完成
           </h1>
           {error && (
             <Alert variant="destructive" className="mb-4">
